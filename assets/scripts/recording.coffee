@@ -1,18 +1,35 @@
+class Cropper
+  constructor: (@audio, @start, @end) ->
+    @element = document.createElement 'div'
+    @canvas = document.createElement 'canvas'
+    @canvas.width = 400
+    @canvas.height = 100
+    @context = @canvas.getContext '2d'
+    @element.appendChild @canvas
+    @draw()
+  
+  draw: ->
+    
+
+  sound: -> @audio.crop @start, @end
+
 class Recording
-  constructor: (@element, @audio = null) ->
+  constructor: (@element, @audio = null, cropStart = 0, cropEnd = 0) ->
+    @cropper = null
+    @nameField = null
     if @audio?
-      @showCropper()
+      @showCropper cropStart, cropStop
     else
       @showStartButton()
   
   beginRecording: (button) ->
     button.disabled = true
     # setup the recorder
-    r = new window.WAVRecorder()
+    r = new window.jswav.Recorder()
     r.onError = (err) => @showError err
-    r.onDone = =>
-      @audio = r.getWAV()
-      @showCropper()
+    r.onDone = (audio) =>
+      @audio = audio
+      @showCropper 0, @audio.duration
     r.onStart = =>
       # setup the button
       @element.innerHTML = ''
@@ -23,9 +40,13 @@ class Recording
     # Start recording
     r.start()
   
-  showCropper: ->
+  showCropper: (start, end) ->
+    @cropper = new Cropper @audio, @start, @end
+    @nameField = document.createElement 'input'
+    @nameField.value = 'Untitled' + Math.random()
     @element.innerHTML = ''
-    console.log 'data is', @audio.base64()
+    @element.appendChild @nameField
+    @element.appendChild @cropper.element
   
   showError: (err) ->
     @element.innerHTML = 'Error: ' + err + '&nbsp;&nbsp;'
@@ -40,5 +61,14 @@ class Recording
     button.innerHTML = 'Start recording'
     button.addEventListener 'click', => @beginRecording button
     @element.appendChild button
+  
+  toUpload: ->
+    return null if not @cropper?
+    dict =
+      name: @nameField.value
+      data: @cropper.sound().base64
+      cut:
+        start: @cropper.start
+        end: @cropper.end
 
 window.Recording = Recording

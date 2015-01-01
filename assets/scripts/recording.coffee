@@ -6,10 +6,17 @@ class Cropper
     @canvas.height = 100
     @context = @canvas.getContext '2d'
     @element.appendChild @canvas
+    @graph = @audio.volumeAverages 200
     @draw()
   
   draw: ->
-    
+    scalar = @canvas.width / @graph.length
+    middle = @canvas.height / 2
+    @context.fillStyle = '#000'
+    for h, i in @graph
+      x = scalar * i
+      h *= middle
+      @context.fillRect x, middle - h, scalar, h * 2
 
   sound: -> @audio.crop @start, @end
 

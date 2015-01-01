@@ -13,17 +13,24 @@
       this.canvas.height = 100;
       this.context = this.canvas.getContext('2d');
       this.element.appendChild(this.canvas);
-      setTimeout(((function(_this) {
-        return function() {
-          return _this.draw();
-        };
-      })(this)), 1000);
+      this.graph = this.audio.volumeAverages(200);
+      this.draw();
     }
 
     Cropper.prototype.draw = function() {
-      console.log('in draw');
-      this.context.fillStyle = '#f00';
-      return this.context.fillRect(0, 0, 50, 50);
+      var h, i, middle, scalar, x, _i, _len, _ref, _results;
+      scalar = this.canvas.width / this.graph.length;
+      middle = this.canvas.height / 2;
+      this.context.fillStyle = '#000';
+      _ref = this.graph;
+      _results = [];
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        h = _ref[i];
+        x = scalar * i;
+        h *= middle;
+        _results.push(this.context.fillRect(x, middle - h, scalar, h * 2));
+      }
+      return _results;
     };
 
     Cropper.prototype.sound = function() {

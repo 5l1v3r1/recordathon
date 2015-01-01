@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <title>Recordathon</title>
+    <link rel="stylesheet" type="text/css" href="main.css">
+  </head>
+  <body>
+    <div id="content">
+      <h1>Existing files</h1>
+      {{#files}}
+        {{.}} <a href="/edit/{{.}}">Edit</a> <br>
+      {{/files}}
+      {{^files.length}}
+        <p class="status">You have no files.</p>
+      {{/files.length}}
+      <a href="/add">Add a file</a>
+    </div>
+  </body>
+</html>

@@ -55,10 +55,16 @@ func main() {
 		log.Fatal("Invalid port number: ", os.Args[1])
 	}
 	http.HandleFunc("/upload", HandleUpload)
+	http.HandleFunc("/add", HandleAdd)
 	http.HandleFunc("/", HandleHome)
 	if err := http.ListenAndServe(":"+os.Args[1], nil); err != nil {
 		log.Fatal("Error listening: ", err)
 	}
+}
+
+func HandleAdd(w http.ResponseWriter, r *http.Request) {
+	log.Print("Serving add page.")
+	http.ServeFile(w, r, filepath.Join(AssetsPath, "add.html"))
 }
 
 func HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +72,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		HandleOther(w, r)
 		return
 	}
+
+	log.Print("Serving homepage.")
 
 	listing, err := ReadListing()
 	if err != nil {

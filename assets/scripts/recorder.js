@@ -124,7 +124,11 @@
   
   Recorder.prototype._setupEvents = function() {
     document.addEventListener('keypress', function(evt) {
-      if (!this.player || !this.name || evt.keyCode !== 0x20 ||
+      code = evt.which;
+      if ('number' !== typeof code) {
+        code = evt.keyCode;
+      }
+      if (!this.player || !this.name || code !== 0x20 ||
           document.activeElement === this.name) {
         return;
       }

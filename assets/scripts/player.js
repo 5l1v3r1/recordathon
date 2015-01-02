@@ -57,14 +57,23 @@
     // Allow the user to drag and move the crop bars
     var dragging = -1;
     
+    eventX = function(evt) {
+      if ('undefined' !== typeof evt.offsetX) {
+        return evt.offsetX;
+      }
+      return evt.layerX - 10;
+    };
+    
     // Handle mousedown events.
     this.canvas.addEventListener('mousedown', function(evt) {
+      x = eventX(evt);
+      console.log(x);
       var timeToX = this.canvas.width / this.sound.header.getDuration();
       var leftBar = this.start * timeToX;
       var rightBar = this.end * timeToX;
-      if (Math.abs(evt.offsetX - leftBar) < 10) {
+      if (Math.abs(x - leftBar) < 10) {
         dragging = 0;
-      } else if (Math.abs(evt.offsetX - rightBar) < 10) {
+      } else if (Math.abs(x - rightBar) < 10) {
         dragging = 1;
       }
     }.bind(this));
@@ -74,8 +83,9 @@
       if (dragging < 0) {
         return;
       }
+      x = eventX(evt);
       var xToTime = this.sound.header.getDuration() / this.canvas.width;
-      var time = xToTime * evt.offsetX;
+      var time = xToTime * x;
       if (dragging == 0) {
         this.start = time;
       } else {

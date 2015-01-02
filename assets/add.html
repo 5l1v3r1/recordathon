@@ -6,8 +6,13 @@
     <link rel="stylesheet" type="text/css" href="style/main.css">
     <link rel="stylesheet" type="text/css" href="style/recording.css">
     <script src="3rdparty/jswav.js"></script>
-    <script src="scripts/add.js"></script>
-    <script src="scripts/recording.js"></script>
+    <script src="scripts/player.js"></script>
+    <script src="scripts/recorder.js"></script>
+    <script type="text/javascript">
+    window.addEventListener('load', function() {
+      new window.recordathon.Recorder();
+    });
+    </script>
   </head>
   <body>
     <div id="content">

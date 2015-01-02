@@ -6,16 +6,18 @@
     <link rel="stylesheet" type="text/css" href="/style/main.css">
     <link rel="stylesheet" type="text/css" href="/style/recording.css">
     <script src="/3rdparty/jswav.js"></script>
-    <script src="/scripts/recording.js"></script>
+    <script src="/scripts/player.js"></script>
+    <script src="/scripts/recorder.js"></script>
     <script type="text/javascript">
     window.addEventListener('load', function() {
       var start = {{start}};
       var end = {{end}};
       var rawData = "{{data}}";
       var name = "{{name}}";
+      // Generate configuration
       var sound = window.jswav.Sound.fromBase64(rawData);
-      new window.Recording(document.getElementById('recording'), sound, start,
-        end, name);
+      var config = {start: start, end: end, name: name, sound: sound};
+      new window.recordathon.Recorder(config);
     });
     </script>
   </head>

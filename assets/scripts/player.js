@@ -1,6 +1,7 @@
 (function() {
   
   function Player(sound, start, end) {
+    this.sound = sound;
     this.start = start;
     this.end = end;
     

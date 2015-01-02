@@ -56,6 +56,7 @@ func main() {
 	}
 	http.HandleFunc("/upload", HandleUpload)
 	http.HandleFunc("/add", HandleAdd)
+	http.HandleFunc("/delete/", HandleDelete)
 	http.HandleFunc("/edit/", HandleEdit)
 	http.HandleFunc("/", HandleHome)
 	if err := http.ListenAndServe(":"+os.Args[1], nil); err != nil {
@@ -68,13 +69,26 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(AssetsPath, "add.html"))
 }
 
-func HandleEdit(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-	path = strings.Replace(path, "..", "", -1)
-	if !strings.HasPrefix(path, "/edit/") {
-		// I'm not really sure this could ever happen
+func HandleDelete(w http.ResponseWriter, r *http.Request) {
+	path := strings.Replace(r.URL.Path, "..", "", -1)
+	name := strings.Replace(path[8:], "/", "", -1)
+	log.Print("Serving delete page: ", name)
+
+	GlobalLock.Lock()
+	defer GlobalLock.Unlock()
+
+	delete(Cuts, name)
+	SaveCuts()
+	if os.Remove(filepath.Join(RootPath, name+".wav")) != nil {
+		http.NotFound(w, r)
 		return
 	}
+
+	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+}
+
+func HandleEdit(w http.ResponseWriter, r *http.Request) {
+	path := strings.Replace(r.URL.Path, "..", "", -1)
 	name := strings.Replace(path[6:], "/", "", -1)
 	log.Print("Serving edit page: ", name)
 
@@ -175,14 +189,7 @@ func HandleUpload(w http.ResponseWriter, r *http.Request) {
 
 	// Save cuts data
 	Cuts[name] = data.Cut
-	cutsData, err := json.Marshal(Cuts)
-	if err != nil {
-		log.Fatal("Failed to marshal cut data: ", err)
-	}
-	err = ioutil.WriteFile(CutsPath, cutsData, os.FileMode(0777))
-	if err != nil {
-		log.Fatal("Failed to save cuts.json: ", err)
-	}
+	SaveCuts()
 
 	w.Write([]byte("true"))
 }
@@ -209,4 +216,15 @@ func ReadListing() ([]string, error) {
 	}
 
 	return res, nil
+}
+
+func SaveCuts() {
+	cutsData, err := json.Marshal(Cuts)
+	if err != nil {
+		log.Fatal("Failed to marshal cut data: ", err)
+	}
+	err = ioutil.WriteFile(CutsPath, cutsData, os.FileMode(0777))
+	if err != nil {
+		log.Fatal("Failed to save cuts.json: ", err)
+	}
 }

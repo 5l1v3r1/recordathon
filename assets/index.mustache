@@ -4,13 +4,21 @@
     <meta charset="UTF-8">
     <title>Recordathon</title>
     <link rel="stylesheet" type="text/css" href="style/main.css">
+    <script type="text/javascript">
+    function deleteEntry(name) {
+      if (confirm("Really delete: " + name + "?")) {
+        window.location = '/delete/' + name;
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="content">
       <h1>Existing files</h1>
       <div class="section">
       {{#files}}
-        {{.}} <a href="/edit/{{.}}">Edit</a> <br>
+        {{.}} <a href="/edit/{{.}}">Edit</a>
+        <a href="javascript:deleteEntry('{{.}}')">Delete</a> <br>
       {{/files}}
       </div>
       <p class="section">You have {{fileCount}} files.</p>

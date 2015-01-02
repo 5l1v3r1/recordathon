@@ -3,38 +3,85 @@
   var Cropper, Recording;
 
   Cropper = (function() {
-    function Cropper(audio, start, end) {
-      this.audio = audio;
+    function Cropper(sound, start, end) {
+      var draggingBar;
+      this.sound = sound;
       this.start = start;
       this.end = end;
       this.element = document.createElement('div');
       this.canvas = document.createElement('canvas');
       this.canvas.width = 400;
-      this.canvas.height = 100;
+      this.canvas.height = 70;
+      this.canvas.style.backgroundColor = '#DDD';
       this.context = this.canvas.getContext('2d');
       this.element.appendChild(this.canvas);
-      this.graph = this.audio.volumeAverages(200);
+      this.histogram = this.sound.histogram(this.canvas.width);
       this.draw();
+      draggingBar = -1;
+      this.canvas.addEventListener('mousedown', (function(_this) {
+        return function(evt) {
+          var leftBar, rightBar;
+          leftBar = _this.canvas.width * _this.start / _this.sound.header.getDuration();
+          rightBar = _this.canvas.width * _this.end / _this.sound.header.getDuration();
+          if (Math.abs(evt.offsetX - leftBar) < 10) {
+            return draggingBar = 0;
+          } else if (Math.abs(evt.offsetX - rightBar) < 10) {
+            return draggingBar = 1;
+          }
+        };
+      })(this));
+      this.canvas.addEventListener('mouseup', function() {
+        return draggingBar = -1;
+      });
+      this.canvas.addEventListener('mousemove', (function(_this) {
+        return function(evt) {
+          var newVal, _ref;
+          if (draggingBar === -1) {
+            return;
+          }
+          newVal = _this.sound.header.getDuration() * evt.offsetX / _this.canvas.width;
+          if (draggingBar === 0) {
+            _this.start = newVal;
+          } else {
+            _this.end = newVal;
+          }
+          if (_this.end < _this.start) {
+            _ref = [_this.start, _this.end], _this.end = _ref[0], _this.start = _ref[1];
+            draggingBar = 1 - draggingBar;
+          }
+          return _this.draw();
+        };
+      })(this));
     }
 
     Cropper.prototype.draw = function() {
-      var h, i, middle, scalar, x, _i, _len, _ref, _results;
-      scalar = this.canvas.width / this.graph.length;
+      var h, i, leftBar, middle, rightBar, scalar, x, _i, _j, _len, _len1, _ref, _ref1;
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      scalar = this.canvas.width / this.histogram.length;
       middle = this.canvas.height / 2;
-      this.context.fillStyle = '#000';
-      _ref = this.graph;
-      _results = [];
+      this.context.fillStyle = '#F00';
+      _ref = this.histogram;
       for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
         h = _ref[i];
         x = scalar * i;
         h *= middle;
-        _results.push(this.context.fillRect(x, middle - h, scalar, h * 2));
+        this.context.fillRect(x, middle - h, scalar, h * 2);
       }
-      return _results;
+      this.context.fillStyle = '#000';
+      leftBar = this.canvas.width * this.start / this.sound.header.getDuration();
+      rightBar = this.canvas.width * this.end / this.sound.header.getDuration();
+      _ref1 = [leftBar, rightBar];
+      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+        x = _ref1[_j];
+        this.context.fillRect(x - 1, 0, 2, this.canvas.height);
+      }
     };
 
-    Cropper.prototype.sound = function() {
-      return this.audio.crop(this.start, this.end);
+    Cropper.prototype.cropped = function() {
+      var res;
+      res = new Audio();
+      res.src = 'data:audio/wav;base64,' + this.sound.crop(this.start, this.end).base64();
+      return res;
     };
 
     return Cropper;
@@ -42,40 +89,68 @@
   })();
 
   Recording = (function() {
-    function Recording(element, audio, cropStart, cropEnd) {
+    function Recording(element, audio, start, end, name) {
       this.element = element;
-      this.audio = audio != null ? audio : null;
-      if (cropStart == null) {
-        cropStart = 0;
+      if (audio == null) {
+        audio = null;
       }
-      if (cropEnd == null) {
-        cropEnd = 0;
+      if (start == null) {
+        start = 0;
+      }
+      if (end == null) {
+        end = 0;
+      }
+      if (name == null) {
+        name = null;
       }
       this.cropper = null;
       this.nameField = null;
-      if (this.audio != null) {
-        this.showCropper(cropStart, cropStop);
+      if (audio != null) {
+        this.showCropper(audio, start, end, name);
       } else {
         this.showStartButton();
       }
+      audio = null;
+      document.addEventListener('keypress', (function(_this) {
+        return function(evt) {
+          if ((_this.nameField != null) && _this.nameField === document.activeElement) {
+            return;
+          }
+          if (_this.cropper == null) {
+            return;
+          }
+          if (evt.keyCode !== 0x20) {
+            return;
+          }
+          if (audio != null) {
+            audio.pause();
+            return audio = null;
+          } else {
+            audio = _this.cropper.cropped();
+            audio.play();
+            return audio.addEventListener('ended', function() {
+              return audio = null;
+            });
+          }
+        };
+      })(this));
     }
 
     Recording.prototype.beginRecording = function(button) {
       var r;
       button.disabled = true;
       r = new window.jswav.Recorder();
-      r.onError = (function(_this) {
+      r.onerror = (function(_this) {
         return function(err) {
           return _this.showError(err);
         };
       })(this);
-      r.onDone = (function(_this) {
-        return function(audio) {
-          _this.audio = audio;
-          return _this.showCropper(0, _this.audio.duration);
+      r.ondone = (function(_this) {
+        return function(sound) {
+          return _this.showCropper(sound, 0, sound.header.getDuration());
         };
       })(this);
-      r.onStart = (function(_this) {
+      r.onstart = (function(_this) {
         return function() {
           _this.element.innerHTML = '';
           button = document.createElement('button');
@@ -89,13 +164,35 @@
       return r.start();
     };
 
-    Recording.prototype.showCropper = function(start, end) {
-      this.cropper = new Cropper(this.audio, this.start, this.end);
+    Recording.prototype.showCropper = function(sound, start, end, name) {
+      var reset, upload;
+      if (name == null) {
+        name = '';
+      }
+      this.cropper = new Cropper(sound, start, end);
       this.nameField = document.createElement('input');
-      this.nameField.value = 'Untitled' + Math.random();
-      this.element.innerHTML = '';
+      this.nameField.value = name;
+      reset = document.createElement('button');
+      reset.addEventListener('click', (function(_this) {
+        return function() {
+          _this.cropper = null;
+          _this.nameField = null;
+          return _this.showStartButton();
+        };
+      })(this));
+      reset.innerHTML = 'Reset';
+      upload = document.createElement('button');
+      upload.addEventListener('click', (function(_this) {
+        return function() {
+          return _this.upload();
+        };
+      })(this));
+      upload.innerHTML = 'Save';
+      this.element.innerHTML = '<label>Name:</label>';
       this.element.appendChild(this.nameField);
-      return this.element.appendChild(this.cropper.element);
+      this.element.appendChild(this.cropper.element);
+      this.element.appendChild(reset);
+      return this.element.appendChild(upload);
     };
 
     Recording.prototype.showError = function(err) {
@@ -105,7 +202,11 @@
       button.innerHTML = 'Dismiss';
       button.addEventListener('click', (function(_this) {
         return function() {
-          return _this.showStartButton();
+          if (_this.cropper != null) {
+            return _this.showCropper(_this.cropper.sound, _this.cropper.start, _this.cropper.end, _this.nameField.value);
+          } else {
+            return _this.showStartButton();
+          }
         };
       })(this));
       return this.element.appendChild(button);
@@ -129,14 +230,42 @@
       if (this.cropper == null) {
         return null;
       }
-      return dict = {
+      dict = {
         name: this.nameField.value,
-        data: this.cropper.sound().base64,
+        data: this.cropper.sound.base64(),
         cut: {
           start: this.cropper.start,
           end: this.cropper.end
         }
       };
+      return dict;
+    };
+
+    Recording.prototype.upload = function() {
+      var req;
+      this.element.innerHTML = 'Uploading...';
+      req = null;
+      if (window.XMLHttpRequest != null) {
+        req = new window.XMLHttpRequest();
+      } else if (window.ActiveXObject != null) {
+        req = new window.ActiveXObject("Microsoft.XMLHTTP");
+      } else {
+        return this.showError('Unable to make AJAX request');
+      }
+      req.onreadystatechange = (function(_this) {
+        return function() {
+          if (req.readyState === 4) {
+            if (req.status === 200) {
+              return window.location = '/';
+            } else {
+              return _this.showError('Failed to upload.');
+            }
+          }
+        };
+      })(this);
+      req.open('POST', '/upload', true);
+      req.setRequestHeader('Content-Type', 'application/json');
+      return req.send(JSON.stringify(this.toUpload()));
     };
 
     return Recording;

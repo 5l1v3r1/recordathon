@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Recordathon</title>
+    <link rel="stylesheet" type="text/css" href="/style/main.css">
+    <link rel="stylesheet" type="text/css" href="/style/recording.css">
+    <script src="/3rdparty/jswav.js"></script>
+    <script src="/scripts/recording.js"></script>
+    <script type="text/javascript">
+    window.addEventListener('load', function() {
+      var start = {{start}};
+      var end = {{end}};
+      var rawData = "{{data}}";
+      var name = "{{name}}";
+      var sound = window.jswav.Sound.fromBase64(rawData);
+      new window.Recording(document.getElementById('recording'), sound, start,
+        end, name);
+    });
+    </script>
+  </head>
+  <body>
+    <div id="content">
+      <h1>Modify a recording</h1>
+      <div id="recording">Please wait...</div>
+      <a href="/">Go back</a>
+    </div>
+  </body>
+</html>

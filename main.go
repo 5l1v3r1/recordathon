@@ -56,6 +56,7 @@ func main() {
 	}
 	http.HandleFunc("/upload", HandleUpload)
 	http.HandleFunc("/add", HandleAdd)
+	http.HandleFunc("/edit/", HandleEdit)
 	http.HandleFunc("/", HandleHome)
 	if err := http.ListenAndServe(":"+os.Args[1], nil); err != nil {
 		log.Fatal("Error listening: ", err)
@@ -65,6 +66,40 @@ func main() {
 func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	log.Print("Serving add page.")
 	http.ServeFile(w, r, filepath.Join(AssetsPath, "add.html"))
+}
+
+func HandleEdit(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	path = strings.Replace(path, "..", "", -1)
+	if !strings.HasPrefix(path, "/edit/") {
+		// I'm not really sure this could ever happen
+		return
+	}
+	name := strings.Replace(path[6:], "/", "", -1)
+	log.Print("Serving edit page: ", name)
+
+	GlobalLock.Lock()
+	defer GlobalLock.Unlock()
+
+	cropInfo, ok := Cuts[name]
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	wavData, err := ioutil.ReadFile(filepath.Join(RootPath, name+".wav"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	wavBase64 := base64.StdEncoding.EncodeToString(wavData)
+
+	info := map[string]interface{}{"name": name, "data": wavBase64,
+		"start": cropInfo.Start, "end": cropInfo.End}
+	templatePath := filepath.Join(AssetsPath, "edit.mustache")
+	body := mustache.RenderFile(templatePath, info)
+	w.Header().Set("Content-Type", "text/html")
+	w.Write([]byte(body))
 }
 
 func HandleHome(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +115,8 @@ func HandleHome(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Failed to read listing: ", err)
 	}
 
-	info := map[string][]string{"files": listing}
+	info := map[string]interface{}{"files": listing,
+		"fileCount": len(listing)}
 	templatePath := filepath.Join(AssetsPath, "index.mustache")
 	body := mustache.RenderFile(templatePath, info)
 	w.Header().Set("Content-Type", "text/html")
@@ -168,7 +204,7 @@ func ReadListing() ([]string, error) {
 	res := make([]string, 0, len(names))
 	for _, name := range names {
 		if strings.HasSuffix(name, ".wav") {
-			res = append(res, name)
+			res = append(res, name[0:len(name)-4])
 		}
 	}
 

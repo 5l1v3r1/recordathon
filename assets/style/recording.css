@@ -1,0 +1,9 @@
+#recording {
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+#recording canvas {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}

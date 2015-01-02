@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8">
     <title>Recordathon</title>
-    <link rel="stylesheet" type="text/css" href="main.css">
+    <link rel="stylesheet" type="text/css" href="style/main.css">
   </head>
   <body>
     <div id="content">
       <h1>Existing files</h1>
+      <div class="section">
       {{#files}}
         {{.}} <a href="/edit/{{.}}">Edit</a> <br>
       {{/files}}
-      {{^files.length}}
-        <p class="status">You have no files.</p>
-      {{/files.length}}
+      </div>
+      <p class="section">You have {{fileCount}} files.</p>
       <a href="/add">Add a file</a>
     </div>
   </body>

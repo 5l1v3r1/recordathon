@@ -84,7 +84,7 @@ func HandleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusMovedPermanently)
+	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 }
 
 func HandleEdit(w http.ResponseWriter, r *http.Request) {

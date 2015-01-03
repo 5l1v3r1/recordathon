@@ -71,9 +71,9 @@
       var timeToX = this.canvas.width / this.sound.header.getDuration();
       var leftBar = this.start * timeToX;
       var rightBar = this.end * timeToX;
-      if (Math.abs(x - leftBar) < 10) {
+      if (Math.abs(x - leftBar) < Math.abs(x - rightBar)) {
         dragging = 0;
-      } else if (Math.abs(x - rightBar) < 10) {
+      } else {
         dragging = 1;
       }
     }.bind(this));

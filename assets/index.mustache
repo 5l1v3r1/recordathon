@@ -15,14 +15,14 @@
   <body>
     <div id="content">
       <h1>Existing files</h1>
+      <p class="section">You have {{fileCount}} files.</p>
+      <a href="/add">Add a file</a>
       <div class="section">
       {{#files}}
         {{.}} <a href="/edit/{{.}}">Edit</a>
         <a href="javascript:deleteEntry('{{.}}')">Delete</a> <br>
       {{/files}}
       </div>
-      <p class="section">You have {{fileCount}} files.</p>
-      <a href="/add">Add a file</a>
     </div>
   </body>
 </html>

@@ -23,6 +23,7 @@
     r.ondone = function(sound) {
       this.showPlayer({name: '', sound: sound, start: 0,
         end: sound.header.getDuration()});
+      this.player.autocut();
     }.bind(this);
     
     r.onstart = function() {

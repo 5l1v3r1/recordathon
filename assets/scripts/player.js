@@ -18,6 +18,23 @@
     this.draw();
   }
   
+  Player.prototype.autocut = function() {
+    var indexToTime = this.sound.header.getDuration() / this.histogram.length;
+    for (var i = 0; i < this.histogram.length; ++i) {
+      if (this.histogram[i] > 0.03) {
+        this.start = i * indexToTime;
+        break;
+      }
+    }
+    for (var i = this.histogram.length - 1; i >= 0; --i) {
+      if (this.histogram[i] > 0.03) {
+        this.end = i * indexToTime;
+        break;
+      }
+    }
+    this.draw();
+  };
+  
   Player.prototype.draw = function() {
     var middle = this.canvas.height / 2;
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);

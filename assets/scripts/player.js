@@ -7,7 +7,7 @@
     
     // Create canvas and context
     this.canvas = document.createElement('canvas');
-    this.canvas.width = 400;
+    this.canvas.width = 600;
     this.canvas.height = 70;
     this.canvas.style.backgroundColor = '#ddd';
     this.context = this.canvas.getContext('2d');

@@ -13,10 +13,11 @@ h1 {
 #content {
   background-color: white;
   left: calc(50% - 300px);
+  margin-left: calc(50% - 300px);
   margin-top: 10px;
+  margin-bottom: 10px;
   min-height: calc(100% - 40px);
   padding: 10px 10px 10px 10px;
-  position: absolute;
   width: 600px;
 }
 

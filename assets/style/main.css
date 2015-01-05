@@ -2,6 +2,8 @@ body {
   background-color: #DDD;
   font-family: arial, sans-serif;
   font-size: 18px;
+  padding: 14px 14px 14px 14px;
+  margin: 0;
 }
 
 h1 {
@@ -12,11 +14,7 @@ h1 {
 
 #content {
   background-color: white;
-  left: calc(50% - 300px);
-  margin-left: calc(50% - 300px);
-  margin-top: 10px;
-  margin-bottom: 10px;
-  min-height: calc(100% - 40px);
+  margin-left: calc(50% - 310px);
   padding: 10px 10px 10px 10px;
   width: 600px;
 }
